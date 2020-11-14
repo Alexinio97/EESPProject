@@ -39,10 +39,11 @@ namespace PatientsWebProject.Controllers
             return Ok(patient);
         }
 
-        // POST: api/commands
+        // POST: api/patients
         [HttpPost]
         public async Task<ActionResult> CreatePatientAsync(Patient patient)
         {
+            Console.WriteLine(patient);
             if(patient == null)
             {
                 return BadRequest();

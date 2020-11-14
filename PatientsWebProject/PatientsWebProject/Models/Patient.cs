@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-
 namespace PatientsWebProject.Models
 {
     public class Patient
@@ -11,7 +10,7 @@ namespace PatientsWebProject.Models
         public string FirstName { get; set; }
         [Required]
         public string LastName { get; set; }
-        [Required,StringLength(13,MinimumLength = 13,ErrorMessage = "CNP-ul trebuie sa aiba exact 13 caractere!")]
+        [Required, StringLength(13, MinimumLength = 13, ErrorMessage = "CNP-ul trebuie sa aiba exact 13 caractere!")]
         public string CNP { get; set; }
     }
 }
