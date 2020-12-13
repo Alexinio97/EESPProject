@@ -1,6 +1,7 @@
-﻿using PatientsWebProject.Models;
+﻿using Patients.Shared.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 
 namespace PatientsWebProject.Data
 {

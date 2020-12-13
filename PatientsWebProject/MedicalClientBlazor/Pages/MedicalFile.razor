@@ -1,0 +1,244 @@
+﻿@page "/medicalfile/{Id:int}"
+@page "/medicalfile"
+@using System.Globalization
+@inject PatientService patientService
+
+
+<Jumbotron Background="Background.Secondary" Margin="Margin.Is4.FromBottom">
+    <h5 class="display-4 mb-3">Fisa medicala - @patientStringName</h5>
+    <Divider />
+    <Alert Color="@alertColor" @ref="myAlert">
+        <AlertDescription>
+            @alertMsg
+        </AlertDescription>
+        <CloseButton @onclick="(() => myAlert.Hide())" />
+    </Alert>
+    <EditForm Model="@patientModel" OnValidSubmit="@AddPatient">
+        <DataAnnotationsValidator />
+        <Microsoft.AspNetCore.Components.Forms.ValidationSummary/>
+
+        <Tabs SelectedTab="@selectedTab">
+            <Items>
+                <Tab Disabled="true" Name="generalData">Date generale</Tab>
+                <Tab Disabled="true" Name="contactData">Date contact</Tab>
+            </Items>
+            <Content>
+                <TabPanel Name="generalData" Margin="Margin.Is2.FromTop">
+                    <Row>
+                        <Column>
+                            <Field>
+                                <FieldLabel>Prenume</FieldLabel>
+                                <TextEdit Placeholder="Introduceti prenume" @bind-Text="patientModel.FirstName" Disabled="isBusy">
+                                    <FieldHelp>Camp obligatoriu</FieldHelp>
+                                </TextEdit>
+                            </Field>
+                        </Column>
+                        <Column>
+                            <Field>
+                                <FieldLabel>Nume</FieldLabel>
+                                <TextEdit Placeholder="Introduceti nume" @bind-Text="patientModel.LastName" Disabled="isBusy">
+                                    <FieldHelp>Camp obligatoriu</FieldHelp>
+                                </TextEdit>
+                            </Field>
+                        </Column>
+                        <Column>
+                            <Field>
+                                <FieldLabel>Introduceti CNP</FieldLabel>
+                                <TextEdit type="text" Placeholder="CNP" Text="@patientModel.CNP" TextChanged="@CalculateData" Disabled="isBusy">
+                                    <FieldHelp>Camp obligatoriu</FieldHelp>
+                                </TextEdit>
+                            </Field>
+                        </Column>
+                    </Row>
+                    <Row>
+                        <Column ColumnSize="ColumnSize.Is6">
+                            <Paragraph>Datele de ma jos vor fii generate automat din cnp.</Paragraph>
+                            <Field Horizontal="true">
+                                <FieldLabel ColumnSize="ColumnSize.Is2">Varsta</FieldLabel>
+                                <FieldBody ColumnSize="ColumnSize.Is4">
+                                    <NumericEdit @bind-Value="patientModel.Age" ReadOnly="true" />
+                                </FieldBody>
+                            </Field>
+                            <Field Horizontal="true">
+                                <FieldLabel ColumnSize="ColumnSize.Is2">Data nasterii</FieldLabel>
+                                <FieldBody ColumnSize="ColumnSize.Is4">
+                                    <DateEdit Disabled="true" @bind-Date="@patientModel.BirthDay" />
+                                </FieldBody>
+                            </Field>
+                            <Field Horizontal="true">
+                                <FieldLabel ColumnSize="ColumnSize.Is2">Genul</FieldLabel>
+                                <FieldBody ColumnSize="ColumnSize.Is4">
+                                    <Select TValue="Gender" Multiple="false" @bind-SelectedValue="patientModel.Gender" Disabled="true">
+                                        <SelectItem Value="Gender.male">Masculin</SelectItem>
+                                        <SelectItem Value="Gender.female">Feminin</SelectItem>
+                                    </Select>
+                                </FieldBody>
+                            </Field>
+                        </Column>
+                        <Column>
+                            <Field Horizontal="true" Margin="Margin.Is0.FromBottom">
+                                <FieldLabel ColumnSize="ColumnSize.Is1">Greutate</FieldLabel>
+                                <FieldBody ColumnSize="ColumnSize.Is2">
+                                    <NumericEdit @bind-Value="patientModel.Weight" Disabled="isBusy">
+                                        <FieldHelp>kg</FieldHelp>
+                                    </NumericEdit>
+                                </FieldBody>
+                            </Field>
+                            <Field Horizontal="true">
+                                <FieldLabel ColumnSize="ColumnSize.Is1">Inaltime</FieldLabel>
+                                <FieldBody ColumnSize="ColumnSize.Is2">
+                                    <NumericEdit @bind-Value="patientModel.Height" Disabled="isBusy">
+                                        <FieldHelp Margin="Margin.Is0.FromBottom">metru</FieldHelp>
+                                    </NumericEdit>
+                                </FieldBody>
+                            </Field>
+                        </Column>
+                    </Row>
+                    <Divider />
+                    <Field ColumnSize="ColumnSize.Is8">
+                        <FieldLabel>Observatii</FieldLabel>
+                        <MemoEdit @bind-Text="patientModel.Observations" Rows="5" />
+                    </Field>
+
+                    <Button Color="Color.Primary" Float="Float.Right" Disabled="isBusy" Clicked="@(() => selectedTab = "contactData")">Inainte</Button>
+                </TabPanel>
+
+                @* Second panel *@
+                <TabPanel Name="contactData" Margin="Margin.Is2.FromTop">
+                    <Row>
+                        <Column>
+                            <Field>
+                                <FieldLabel>Judet</FieldLabel>
+                                <TextEdit @bind-Text="patientModel.State" Placeholder="Introduceti judetul" Disabled="isBusy">
+                                </TextEdit>
+                            </Field>
+                        </Column>
+                        <Column>
+                            <Field>
+                                <FieldLabel>Oras</FieldLabel>
+                                <TextEdit @bind-Text="patientModel.City" Placeholder="Introduceti orasul" Disabled="isBusy">
+                                </TextEdit>
+                            </Field>
+                        </Column>
+                    </Row>
+                    <Row>
+                        <Column>
+                            <Field>
+                                <FieldLabel>Email</FieldLabel>
+                                <TextEdit @bind-Text="patientModel.EmailAdress" Role="TextRole.Email" Placeholder="john.doe@mail.com" Disabled="isBusy">
+                                </TextEdit>
+                            </Field>
+                        </Column>
+                        <Column>
+                            <Field>
+                                <FieldLabel>Telefon</FieldLabel>
+                                <TextEdit @bind-Text="patientModel.Phone" Placeholder="Introduceti numarul de telefon" Disabled="isBusy">
+                                </TextEdit>
+                            </Field>
+                        </Column>
+                    </Row>
+                    <Row>
+                        <Column>
+                            <Button Color="Color.Primary" Disabled="isBusy" Clicked="@(() => selectedTab = "generalData")">Inapoi</Button>
+                        </Column>
+                        <Column>
+                            <Button Float="Float.Right" Type="ButtonType.Submit" Color="Color.Primary" Disabled="isBusy">Adauga</Button>
+                        </Column>
+                    </Row>
+                </TabPanel>
+            </Content>
+        </Tabs>
+    </EditForm>
+</Jumbotron>
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private Patient patientModel = new Patient();
+    private bool isBusy = false;
+    private string patientStringName = String.Empty;
+
+    // Alert variables;
+    private Color alertColor = Color.Success;
+    private Alert myAlert;
+    private string alertMsg = string.Empty;
+
+    //Tab variables
+    string selectedTab = "generalData";
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    protected async override void OnParametersSet()
+    {
+        Console.WriteLine("Initialization!");
+
+        var patientFound = await patientService.GetPatientByIdAsync(Id);
+        if (patientFound != null)
+        {
+            patientModel = patientFound;
+            patientStringName = $"{patientModel.FirstName}, {patientModel.LastName}";
+            StateHasChanged();
+        }
+        else
+        {
+            patientStringName = "Pacient nou";
+            StateHasChanged();
+        }
+    }
+
+
+    // method that will generate the age, birthday and sex
+    private void CalculateData(string value)
+    {
+        patientModel.CNP = value;
+        if (patientModel.CNP?.Length == 13)
+        {
+            var gender = int.Parse(patientModel.CNP.Substring(0, 1));
+            var birthDayStr = patientModel.CNP.Substring(1, 6);
+            DateTime birthDay = DateTime.ParseExact(birthDayStr, "yyMMdd", CultureInfo.InvariantCulture);
+            patientModel.BirthDay = birthDay;
+            patientModel.Gender = (Gender)gender;
+
+            patientModel.Age = DateTime.Now.Year - birthDay.Year;
+        }
+    }
+
+    private async void AddPatient()
+    {
+        isBusy = true;
+        var response = await patientService.CreatePatient(patientModel);
+        
+        if(response.IsSuccessStatusCode)
+        {
+            alertMsg = "Pacient creat cu succes!";
+            // refresh input data
+            patientModel = new Patient();
+            isBusy = false;
+            StateHasChanged();
+            myAlert.Show();
+        }
+        else if(response.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            alertMsg = "Pacientul exista deja in baza de date!";
+            alertColor = Color.Warning;
+            Console.WriteLine(alertColor.ToString());
+            isBusy = false;
+            StateHasChanged();
+            myAlert.Show();
+        }
+        else
+        {
+            alertMsg = "Pacientul nu a putut fii creat!";
+            alertColor = Color.Danger;
+            isBusy = false;
+            StateHasChanged();
+            myAlert.Show();
+        }
+
+
+    }
+}

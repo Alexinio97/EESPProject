@@ -1,0 +1,174 @@
+﻿@page "/patients"
+@inject PatientService patientService
+@inject NavigationManager navManager
+
+<Jumbotron Background="Background.Secondary" Margin="Margin.Is4.FromBottom">
+    <Row>
+        <Column>
+            <h5 class="display-4 mb-3">Lista pacienti</h5>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is6.WithOffset" Margin="Margin.Is4.FromTop">
+            <Button Color="Color.Primary" @onclick="@(() => navManager.NavigateTo("/medicalFile"))">Adauga pacient nou</Button>
+        </Column>
+    </Row>
+
+    <Divider />
+    <Alert Color="@alertColor" @ref="myAlert">
+        <AlertDescription>
+            @alertMsg
+        </AlertDescription>
+        <CloseButton @onclick="(() => myAlert.Hide())" />
+    </Alert>
+
+    @if (patients == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <Row>
+            <Column>
+                <Help Padding="Padding.Is2">Dati dublu click pe un rand pentru a putea vedea consultatiile unui pacient.</Help>
+            </Column>
+            <Column>
+                <TextEdit Placeholder="Cauta dupa nume/prenume..." Padding="Padding.Is2" Margin="Margin.Is2.FromBottom" TextChanged="@OnSearchChanged"/>
+            </Column>
+        </Row>
+        
+        <Table Bordered="true" Hoverable="true">
+            <TableHeader ThemeContrast="ThemeContrast.Dark">
+                <TableRow>
+                    <TableHeaderCell>Actiuni</TableHeaderCell>
+                    <TableHeaderCell>Id</TableHeaderCell>
+                    <TableHeaderCell>Prenume 
+                        <Button Padding="Padding.Is0" title="Sorteaza dupa prenume" Float="Float.Right" Color="Color.Secondary" Clicked="SortByFirstName">
+                            <Blazorise.Icons.FontAwesome.Icon IconStyle="IconStyle.Solid"  Name="IconName.SortAlphaDown" />
+                        </Button>
+                    </TableHeaderCell>
+                    <TableHeaderCell>Nume
+                        <Button Padding="Padding.Is0" title="Sorteaza dupa nume" Float="Float.Right" Color="Color.Secondary" Clicked="SortByLastName">
+                            <Blazorise.Icons.FontAwesome.Icon IconStyle="IconStyle.Solid" Name="IconName.SortAlphaDown" />
+                        </Button>
+                    </TableHeaderCell>
+                    <TableHeaderCell>CNP</TableHeaderCell>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                @foreach (var patient in patients)
+                {
+                    <TableRow DoubleClicked="(() => GoToPatientConsultations(patient.Id))">
+                        <TableRowCell Style="width:10%">
+                            <Button title="Fisa pacient" Color="Color.Primary" @onclick="@( () => GoToMedicalFile(patient.Id))">
+                                <Icon Name="IconName.FileAlt" />
+                            </Button>
+                            <Button title="Sterge pacient" Color="Color.Danger" Margin="Margin.Is1.FromLeft"
+                                    @onclick="(() => ShowDeleteModal(patient.Id))">
+                                <Icon Name="IconName.Delete" />
+                            </Button>
+                        </TableRowCell>
+                        <TableRowHeader>@patient.Id</TableRowHeader>
+                        <TableRowCell>@patient.FirstName</TableRowCell>
+                        <TableRowCell>@patient.LastName</TableRowCell>
+                        <TableRowCell>@patient.CNP</TableRowCell>
+                    </TableRow>
+                }
+            </TableBody>
+        </Table>
+    }
+
+</Jumbotron>
+
+<Modal @ref="modalDelete" ScrollToTop="false" >
+    <ModalContent Centered="true">
+
+        <ModalHeader>
+            <ModalTitle>Sigur doriti sa stergeti pacientul?</ModalTitle>
+            <CloseButton Clicked="@( () => modalDelete.Hide())" />
+        </ModalHeader>
+        <ModalFooter>
+            <Button Color="Color.Secondary" @onclick="( () => modalDelete.Hide())">Nu</Button>
+            <Button Color="Color.Primary" @onclick="DeletePatient">Da</Button>
+        </ModalFooter>
+
+    </ModalContent>
+
+</Modal>
+
+@code {
+    private IEnumerable<Patient> patients;
+    private IEnumerable<Patient> originalPatients;
+    private Modal modalDelete;
+    private int idToDelete;
+    string alertMsg = string.Empty;
+
+    Color alertColor = Color.Success;
+    Alert myAlert;
+
+    protected override async Task OnInitializedAsync()
+    {
+        patients = await patientService.GetPatientsAsync();
+        originalPatients = patients;
+    }
+
+    private void ShowDeleteModal(int id)
+    {
+        idToDelete = id;
+        modalDelete.Show();
+    }
+
+    private async void DeletePatient()
+    {
+        var result = await patientService.DeletePatientAsync(idToDelete);
+        modalDelete.Hide();
+        if(result.IsSuccessStatusCode)
+        {
+            alertMsg = "Pacient sters cu succes!";
+            myAlert.Show();
+            patients = await patientService.GetPatientsAsync();
+            StateHasChanged();
+        }
+        else
+        {
+            alertMsg = "Eroare la stergerea pacientului!";
+            alertColor = Color.Danger;
+            myAlert.Show();
+        }
+    }
+
+    private void GoToMedicalFile(int id)
+    {
+        navManager.NavigateTo($"/medicalFile/{id}");
+    }
+
+    private void GoToPatientConsultations(int id)
+    {
+        navManager.NavigateTo($"/patient/consultations/{id}");
+    }
+
+
+    // sort methods
+    private void SortByFirstName()
+    {
+        patients = patients.OrderBy(p => p.FirstName).ToList();
+        StateHasChanged();
+    }
+
+    private void SortByLastName()
+    {
+        patients = patients.OrderBy(p => p.LastName).ToList();
+        StateHasChanged();
+    }
+
+    private void OnSearchChanged(string value)
+    {
+        var patientsFound = patients.Where(e => e.FirstName.Contains(value) || e.LastName.Contains(value)).ToList();
+        if(patientsFound.Count > 0)
+        {
+            patients = patientsFound;
+            StateHasChanged();
+            return;
+        }
+
+        patients = originalPatients;
+    }
+}

@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PatientsWebProject.Models;
+using Patients.Shared.Models;
 
 namespace PatientsWebProject.Data
 {
@@ -11,5 +11,6 @@ namespace PatientsWebProject.Data
         }
 
         public DbSet<Patient> Patients { get; set; }
+        public DbSet<Consultation> Consultations { get; set; }
     }
 }

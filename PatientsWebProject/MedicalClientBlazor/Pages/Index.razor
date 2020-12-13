@@ -1,0 +1,85 @@
+﻿@page "/"
+@inject ConsultationService consultService
+@inject PatientService patientService
+
+
+<Jumbotron Background="Background.Transparent">
+    <JumbotronTitle Size="JumbotronTitleSize.Is4">Consultatiile din ziua curenta</JumbotronTitle>
+    <JumbotronSubtitle>Data:  @DateTime.Now.Date.ToString("MM/dd/yyyy")</JumbotronSubtitle>
+    <Divider />
+    @if (consultations == null && patients == null)
+    {
+        <div>Nici-o consultatie azi!</div>
+    }
+    else
+    {
+    <Row>
+        <Column ColumnSize="ColumnSize.Is8">
+            <Table Margin="Margin.Is2.FromTop" Hoverable="true" Bordered="true">
+                <TableHeader ThemeContrast="ThemeContrast.Dark">
+                    <TableHeaderCell>Id</TableHeaderCell>
+                    <TableHeaderCell>Nume pacient</TableHeaderCell>
+                    <TableHeaderCell>Motiv</TableHeaderCell>
+                </TableHeader>
+                <TableBody>
+                    @foreach (var consult in consultations)
+                    {
+                        <TableRow Clicked="@(() => ShowDescription(consult))">
+                            <TableRowCell>@consult.Id</TableRowCell>
+                            <TableRowCell>@patients.FirstOrDefault(p => p.Id == consult.PatientId).ToString()</TableRowCell>
+                            <TableRowCell>@consult.ConsultationReason</TableRowCell>
+                        </TableRow>
+                    }
+                </TableBody>
+            </Table>
+        </Column>
+        <Column>
+            <Help>Faceti click pe o intrare pentru a vedea descrierea</Help>
+            @if(consultClicked !=null)
+            { 
+                <Card Style="width: 30rem;">
+                    <CardTitle Class="bg-secondary" Padding="Padding.Is2" Size="5">Pacient: @patients?.FirstOrDefault(p => p.Id == consultClicked.PatientId).ToString()</CardTitle>
+                    <CardBody>
+                        <CardText>
+                            <b>Descriere:</b> @consultClicked.Description
+                        </CardText>
+                    </CardBody>
+                    <CardFooter>
+                        <b>Data:</b> @consultClicked.Date.ToString("MM-dd-yyyy")
+                    </CardFooter>
+                </Card>
+            }
+        </Column>
+    </Row>
+    }
+</Jumbotron>
+
+
+@code
+{
+    private IEnumerable<Consultation> consultations;
+    private IEnumerable<PatientDTO> patients;
+    private Consultation consultClicked;
+
+    protected async override Task OnInitializedAsync()
+    {
+        consultations = await consultService.GetTodayConsultations();
+        if (consultations.Any())
+        {
+            var intermediaryPatients = new List<PatientDTO>();
+            foreach (var consult in consultations)
+            {
+                Console.WriteLine(consult.PatientId);
+                var patientFetched = await patientService.GetPatientsShortNamesByIdAsync(consult.PatientId);
+                intermediaryPatients.Add(patientFetched);
+            }
+            patients = intermediaryPatients;
+        }
+    }
+
+    private void ShowDescription(Consultation consult)
+    {
+        consultClicked = consult;
+        StateHasChanged();
+    }
+}

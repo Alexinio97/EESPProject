@@ -1,0 +1,83 @@
+﻿@page "/patient/consultations/{Id:int}"
+@inject ConsultationService consultService
+@inject PatientService patientService
+@using System.Globalization
+@using Blazorise.Snackbar
+
+<Title>Pacient: @(patient == null ? "" : patient.ToString())</Title>
+<Blazorise.Snackbar.Snackbar @ref="snackBarInfo" Color="sBarColor" Location="SnackbarLocation.Right">
+    <SnackbarBody>
+        @snackBarMsg
+    </SnackbarBody>
+    <SnackbarAction Clicked="@(()=>snackBarInfo.Hide())">x</SnackbarAction>
+</Blazorise.Snackbar.Snackbar>
+
+@if (patientConsultations != null)
+{
+    <Row>
+        @foreach (var consult in patientConsultations)
+        {
+            <Card Style="width: 30rem;" Margin="Margin.Is3.FromRight.Is2.FromBottom">
+                <CardTitle Class="bg-info" Padding="Padding.Is2" Size="5">
+                    <b>Motiv:</b> @consult.ConsultationReason
+                    <Button Size="Size.Large" title="Sterge consultatie" Float="Float.Right"
+                            Clicked="@(() => RemoveConsultationAsync(consult.Id))">
+                        <Icon Name="IconName.TimesCircle" />
+                    </Button>
+                </CardTitle>
+                <CardBody>
+                    <CardText>
+                        <b>Pacient:</b> @patient.ToString()
+                        <Divider />
+                        <b>Descriere:</b> @consult.Description
+                    </CardText>
+                </CardBody>
+                <CardFooter>
+                    <b>Data:</b> @consult.Date.ToString("MM-dd-yyyy")
+                </CardFooter>
+            </Card>
+        }
+    </Row>
+}
+else
+{
+    <div>Loading ...</div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private PatientDTO patient;
+    IEnumerable<Consultation> patientConsultations;
+    // snack bar varaibles
+    private Snackbar snackBarInfo;
+    private SnackbarColor sBarColor;
+    private string snackBarMsg = String.Empty;
+
+    protected async override Task OnParametersSetAsync()
+    {
+        patient = await patientService.GetPatientsShortNamesByIdAsync(Id);
+        patientConsultations = await consultService.GetPatientConsultationsAsync(Id);
+    }
+
+
+    private async Task RemoveConsultationAsync(int id)
+    {
+        var result = await consultService.DeleteConsultationAsync(id);
+        if (result.IsSuccessStatusCode)
+        {
+            patientConsultations = await consultService.GetPatientConsultationsAsync(Id);
+            StateHasChanged();
+            sBarColor = SnackbarColor.Success;
+            snackBarMsg = "Consultatia a fost stearsa cu succes!";
+            snackBarInfo.Show();
+        }
+        else
+        {
+            sBarColor = SnackbarColor.Danger;
+            snackBarMsg = "Eroare la stergerea consultatiei!";
+            snackBarInfo.Show();
+        }
+
+    }
+}

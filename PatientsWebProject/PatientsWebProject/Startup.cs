@@ -1,10 +1,13 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 using PatientsWebProject.Data;
+using System;
 
 namespace PatientsWebProject
 {
@@ -26,6 +29,7 @@ namespace PatientsWebProject
             (Configuration.GetConnectionString("MedicalConnection")));
 
             services.AddScoped<IPatientRepo, SqlPatientRepo>();
+            services.AddScoped<IConsultationRepo, SqlConsultationRepo>();
 
             services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
             {
@@ -33,16 +37,31 @@ namespace PatientsWebProject
                        .AllowAnyMethod()
                        .AllowAnyHeader();
             }));
+            // Register swagger generator
+            services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Medical API", Version = "v1" });
+            });
+
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("v1/swagger.json", "Medical API V1");
+            });
 
             app.UseCors("MyPolicy");
             app.UseHttpsRedirection();

@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PatientsWebProject", "PatientsWebProject\PatientsWebProject.csproj", "{5D8CEFBA-B30E-45F1-8467-F16851960A5F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedicalClientBlazor", "MedicalClientBlazor\MedicalClientBlazor.csproj", "{D4CA4755-650A-4D00-B67D-C6FF61BCF4AB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Patients.Shared", "Patients.Shared\Patients.Shared.csproj", "{206B5583-9FB9-467A-953D-F8E29B39EB3A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{5D8CEFBA-B30E-45F1-8467-F16851960A5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D8CEFBA-B30E-45F1-8467-F16851960A5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D8CEFBA-B30E-45F1-8467-F16851960A5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4CA4755-650A-4D00-B67D-C6FF61BCF4AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4CA4755-650A-4D00-B67D-C6FF61BCF4AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4CA4755-650A-4D00-B67D-C6FF61BCF4AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4CA4755-650A-4D00-B67D-C6FF61BCF4AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{206B5583-9FB9-467A-953D-F8E29B39EB3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{206B5583-9FB9-467A-953D-F8E29B39EB3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{206B5583-9FB9-467A-953D-F8E29B39EB3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{206B5583-9FB9-467A-953D-F8E29B39EB3A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

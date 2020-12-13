@@ -1,0 +1,257 @@
+﻿@page "/consultations"
+@inject ConsultationService consultService
+@inject PatientService patientService
+
+
+<Jumbotron Background="Background.Transparent" Margin="Margin.Is4.FromBottom">
+    <Row>
+        <Column>
+            <h5 class="display-4 mb-3">Lista consultatii</h5>
+        </Column>
+        <Column>
+            <Button Margin="Margin.Is3.FromTop" Color="Color.Secondary" Float="Float.Right"
+                    @onclick="DisplayAddModal">
+                Adauga consultatie
+            </Button>
+        </Column>
+    </Row>
+    <Divider />
+    @if (consultations == null)
+    {
+        <div class="spinner-border">
+            <span class="sr-only">Loading...</span>
+        </div>
+    }
+    else
+    {
+        <Row class="row-cols-1 row-cols-md-3">
+            @foreach (var consult in consultations)
+            {
+                <Column Class="mb-4">
+                    <Card Style="width: 30rem;">
+                        <CardTitle Class="bg-info" Padding="Padding.Is2" Size="5">
+                            <b>Motiv:</b> @consult.ConsultationReason
+                            <Button Size="Size.Large" title="Sterge consultatie" Float="Float.Right"
+                                    Clicked="@(() => RemoveConsultationAsync(consult.Id))">
+                                <Icon Name="IconName.TimesCircle" />
+                            </Button>
+                        </CardTitle>
+                        <CardBody>
+                            <CardText>
+                                <b>Pacient:</b> @patients.FirstOrDefault(p => p.Id == consult.PatientId).ToString()
+                                <Divider />
+                                <b>Descriere:</b> @consult.Description
+                            </CardText>
+                        </CardBody>
+                        <CardFooter>
+                            <b>Data:</b> @consult.Date.ToString("MM-dd-yyyy")
+                        </CardFooter>
+                    </Card>
+                </Column>
+            }
+        </Row>
+    }
+    @if (modalOpened)
+    {
+        <div class="modal-backdrop fade show"></div>
+    }
+    @if (consultations != null)
+    {
+    <Pagination Alignment="Alignment.Center">
+        <PaginationItem>
+            <PaginationLink Clicked="(() => ChangePage(currentPage - 1))">
+                <Icon Name="IconName.ChevronLeft" />
+            </PaginationLink>
+        </PaginationItem>
+            @if (consultPages.Count > 0)
+            {
+                @foreach (var consultPage in consultPages)
+                {
+                    <PaginationItem>
+                        <PaginationLink Clicked="@(e => ChangePage(consultPage.PageNumber))">
+                            @consultPage.PageNumber
+                        </PaginationLink>
+                    </PaginationItem>
+                }
+        }
+        <PaginationItem>
+            <PaginationLink Clicked="(() => ChangePage(currentPage + 1))">
+                <Icon Name="IconName.ChevronRight" />
+            </PaginationLink>
+        </PaginationItem>
+    </Pagination>
+    }
+
+</Jumbotron>
+<Modal @ref="modalAdd" ScrollToTop="false">
+    <ModalContent Centered="true">
+
+        <ModalHeader>
+            <ModalTitle>Adauga consultatie noua</ModalTitle>
+            <CloseButton Clicked="CloseModal" />
+        </ModalHeader>
+        <ModalBody>
+            <EditForm Model="@consult">
+                <Field>
+                    <FieldLabel>Selectati pacientul</FieldLabel>
+                    <Select TValue="int" Multiple="false" @bind-SelectedValue="consult.PatientId">
+                        @if (patients != null)
+                        {
+                            @foreach (var item in patients)
+                            {
+                                <SelectItem Value="@item.Id">@item.FirstName, @item.LastName</SelectItem>
+                            }
+                        }
+                        else
+                        {
+                            <SelectItem Value="0" Disabled="true">Nici-un pacient existent</SelectItem>
+                        }
+                    </Select>
+                </Field>
+                <Field>
+                    <FieldLabel>Motivul consultatiei</FieldLabel>
+                    <TextEdit Placeholder="Introduceti motivul consultatiei" @bind-Text="consult.ConsultationReason">
+                        <FieldHelp>Camp obligatoriu</FieldHelp>
+                    </TextEdit>
+                </Field>
+                <Field>
+                    <FieldLabel>Data consultatiei</FieldLabel>
+                    <DateEdit @bind-Date="consult.Date" TValue="DateTime" >
+                        <FieldHelp>Camp obligatoriu</FieldHelp>
+                    </DateEdit>
+                </Field>
+                <Field>
+                    <FieldLabel>Descriere</FieldLabel>
+                    <MemoEdit Rows="5" Placeholder="Introduceti descrierea" @bind-Text="consult.Description">
+                        <FieldHelp>Camp obligatoriu</FieldHelp>
+                    </MemoEdit>
+                </Field>
+            </EditForm>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" @onclick="CloseModal">Nu</Button>
+            <Button Color="Color.Primary" @onclick="CreateConsultAsync">Da</Button>
+        </ModalFooter>
+
+    </ModalContent>
+
+</Modal>
+
+
+@code {
+    private IEnumerable<Consultation> consultations;
+    private Modal modalAdd;
+    private Consultation consult = new Consultation();
+    private List<ConsultPage> consultPages = new List<ConsultPage>();
+
+    private bool modalOpened = false;
+    private int numberOfPages = 1;
+    private int currentPage = 1;
+
+    private IEnumerable<PatientDTO> patients;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var consultCount = await consultService.GetConsultationsCount();
+        numberOfPages = (int)Math.Ceiling((decimal)consultCount / 6);
+        CreatePages();
+        consultations = await consultService.GetConsultationsPartsAsync(currentPage);
+        currentPage = consultPages[0].PageNumber;
+        patients = await patientService.GetPatientsShortNamesAsync();
+    }
+
+    private void CreatePages()
+    {
+        for(int i = 1; i <= numberOfPages; i++)
+        {
+            consultPages.Add(new ConsultPage { PageNumber = i });
+        }
+    }
+
+
+    private async Task CreateConsultAsync()
+    {
+        var response = await consultService.CreateConsultationAsync(consult);
+        if(response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("Succes!");
+            modalOpened = false;
+            modalAdd.Hide();
+            var consultCount = await consultService.GetConsultationsCount();
+            numberOfPages = (int)Math.Ceiling((decimal)consultCount / 6);
+            if(numberOfPages != consultPages.Count)
+            {
+                // refersh pages at the bottom
+                consultPages = new List<ConsultPage>();
+                CreatePages();
+            }
+            currentPage = consultPages.Count;
+            consultations = await consultService.GetConsultationsPartsAsync(currentPage);
+            StateHasChanged();
+        }
+        else
+        {
+            Console.WriteLine("Failure!");
+            modalOpened = false;
+            modalAdd.Hide();
+        }
+    }
+
+
+    private void CloseModal()
+    {
+        modalAdd.Hide();
+        modalOpened = false;
+        StateHasChanged();
+    }
+
+    private void DisplayAddModal()
+    {
+        consult.Date = DateTime.Now;
+        modalAdd.Show();
+        modalOpened = true;
+    }
+
+    private async void RemoveConsultationAsync(int id)
+    {
+        var response = await consultService.DeleteConsultationAsync(id);
+        if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
+        {
+            var consultCount = await consultService.GetConsultationsCount();
+            numberOfPages = (int)Math.Ceiling((decimal)consultCount / 6);
+            if (numberOfPages != consultPages.Count)
+            {
+                // refersh pages at the bottom
+                consultPages = new List<ConsultPage>();
+                CreatePages();
+            }
+            currentPage = consultPages.Count;
+            consultations = await consultService.GetConsultationsPartsAsync(currentPage);
+            StateHasChanged();
+        }
+        else
+        {
+            Console.WriteLine("Failure!");
+        }
+    }
+
+    private async void ChangePage(int page)
+    {
+        try
+        {
+            Console.WriteLine($"Current page outside if {page}");
+            if (page > 0 && page <= consultPages.Count)
+            {
+                currentPage = page;
+                Console.WriteLine(currentPage);
+                consultations = await consultService.GetConsultationsPartsAsync(page);
+                StateHasChanged();
+            }
+            
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+}

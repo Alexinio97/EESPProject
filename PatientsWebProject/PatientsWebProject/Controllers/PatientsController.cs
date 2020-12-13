@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Patients.Shared.DTOs;
+using Patients.Shared.Models;
 using PatientsWebProject.Data;
-using PatientsWebProject.Models;
 
 namespace PatientsWebProject.Controllers
 {
@@ -12,9 +14,11 @@ namespace PatientsWebProject.Controllers
     public class PatientsController : Controller
     {
         private readonly IPatientRepo _patientRepo;
-        public PatientsController(IPatientRepo patientRepo)
+        private readonly IMapper _mapper;
+        public PatientsController(IPatientRepo patientRepo,IMapper mapper)
         {
             _patientRepo = patientRepo;
+            _mapper = mapper;
         }
 
         // GET: api/patients
@@ -48,17 +52,15 @@ namespace PatientsWebProject.Controllers
             {
                 return BadRequest();
             }
+            if(await _patientRepo.GetPatientByIdAsync(patient.Id) != null)
+            {
+                return Conflict();
+            }
 
             await _patientRepo.CreatePatientAsync(patient);
             await _patientRepo.SaveChangesAsync();
 
-            return CreatedAtRoute(nameof(GetPatientByIdAsync), new { Id = patient.Id }, patient);
-        }
-
-        // GET: PatientsController/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
+            return CreatedAtRoute(nameof(GetPatientByIdAsync), new { patient.Id }, patient);
         }
 
 
@@ -76,5 +78,26 @@ namespace PatientsWebProject.Controllers
             await _patientRepo.SaveChangesAsync();
             return NoContent();
         }
+
+
+        // Retrieves patients only with ID and name
+        [HttpGet("consult-patients")]
+        public async Task <ActionResult <IEnumerable<PatientDTO>>> GetPatientsIdAndNameAsync()
+        {
+            var commands = await _patientRepo.GetPatientsAsync();
+
+            return Ok(_mapper.Map<IEnumerable<PatientDTO>>(commands));
+        }
+
+        // Retrieves one patient only with ID and name
+        [HttpGet("consult-patients/{id}")]
+        public async Task<ActionResult<PatientDTO>> GetPatientsIdAndNameByIdAsync(int id)
+        {
+            var patients = (List<Patient>) await  _patientRepo.GetPatientsAsync();
+            var patientFound = patients.Find(e => e.Id == id);
+            return Ok(_mapper.Map<PatientDTO>(patientFound));
+        }
+
+
     }
 }
