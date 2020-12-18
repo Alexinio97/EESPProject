@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
+using MedicalClientBlazor.Helpers;
 
 namespace MedicalClientBlazor
 {
@@ -21,6 +22,7 @@ namespace MedicalClientBlazor
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
             builder.Services.AddScoped(service => new PatientService(baseUri));
             builder.Services.AddScoped(cService => new ConsultationService(baseUri));
+            builder.Services.AddScoped(helperService => new PatientHelper());
 
             // add blazorise and font aweseme
             builder.Services.AddBlazorise(opt =>

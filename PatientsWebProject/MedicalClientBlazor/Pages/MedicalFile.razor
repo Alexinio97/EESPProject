@@ -1,7 +1,10 @@
 ﻿@page "/medicalfile/{Id:int}"
 @page "/medicalfile"
 @using System.Globalization
+@using System.Text.Json
+
 @inject PatientService patientService
+@inject PatientHelper patientHelper
 
 
 <Jumbotron Background="Background.Secondary" Margin="Margin.Is4.FromBottom">
@@ -142,7 +145,9 @@
                             <Button Color="Color.Primary" Disabled="isBusy" Clicked="@(() => selectedTab = "generalData")">Inapoi</Button>
                         </Column>
                         <Column>
-                            <Button Float="Float.Right" Type="ButtonType.Submit" Color="Color.Primary" Disabled="isBusy">Adauga</Button>
+                            <Button Float="Float.Right" Type="ButtonType.Submit" Color="Color.Primary" Disabled="isBusy">
+                                @( patientExists ? "Actualizeaza" : "Adauga")
+                            </Button>
                         </Column>
                     </Row>
                 </TabPanel>
@@ -153,11 +158,15 @@
 
 
 @code {
-    [Parameter]
-    public int Id { get; set; }
+        [Parameter]
+        public int Id { get; set; }
     private Patient patientModel = new Patient();
+    // another object used for patch
+    private Patient originalPatient;
     private bool isBusy = false;
     private string patientStringName = String.Empty;
+
+    private bool patientExists = false;
 
     // Alert variables;
     private Color alertColor = Color.Success;
@@ -179,7 +188,9 @@
         var patientFound = await patientService.GetPatientByIdAsync(Id);
         if (patientFound != null)
         {
+            patientExists = true;
             patientModel = patientFound;
+            originalPatient = patientHelper.ClonePatient(JsonSerializer.Serialize(patientFound));
             patientStringName = $"{patientModel.FirstName}, {patientModel.LastName}";
             StateHasChanged();
         }
@@ -190,6 +201,7 @@
         }
     }
 
+    
 
     // method that will generate the age, birthday and sex
     private void CalculateData(string value)
@@ -210,35 +222,42 @@
     private async void AddPatient()
     {
         isBusy = true;
-        var response = await patientService.CreatePatient(patientModel);
-        
-        if(response.IsSuccessStatusCode)
+        if (!patientExists)
         {
-            alertMsg = "Pacient creat cu succes!";
-            // refresh input data
-            patientModel = new Patient();
-            isBusy = false;
-            StateHasChanged();
-            myAlert.Show();
-        }
-        else if(response.StatusCode == System.Net.HttpStatusCode.Conflict)
-        {
-            alertMsg = "Pacientul exista deja in baza de date!";
-            alertColor = Color.Warning;
-            Console.WriteLine(alertColor.ToString());
-            isBusy = false;
-            StateHasChanged();
-            myAlert.Show();
+            var response = await patientService.CreatePatient(patientModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                alertMsg = "Pacient creat cu succes!";
+                // refresh input data
+                patientModel = new Patient();
+                isBusy = false;
+                StateHasChanged();
+                myAlert.Show();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                alertMsg = "Pacientul exista deja in baza de date!";
+                alertColor = Color.Warning;
+                Console.WriteLine(alertColor.ToString());
+                isBusy = false;
+                StateHasChanged();
+                myAlert.Show();
+            }
+            else
+            {
+                alertMsg = "Pacientul nu a putut fii creat!";
+                alertColor = Color.Danger;
+                isBusy = false;
+                StateHasChanged();
+                myAlert.Show();
+            }
         }
         else
         {
-            alertMsg = "Pacientul nu a putut fii creat!";
-            alertColor = Color.Danger;
+            await patientService.UpdatePatientAsync(patientModel, originalPatient);
             isBusy = false;
-            StateHasChanged();
-            myAlert.Show();
         }
-
 
     }
 }

@@ -98,6 +98,7 @@ namespace PatientsWebProject.Controllers
             return Ok(_mapper.Map<PatientDTO>(patientFound));
         }
 
+        //TODO: Create patch request
 
     }
 }
