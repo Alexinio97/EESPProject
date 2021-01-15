@@ -1,7 +1,4 @@
-﻿using JsonDiffPatchDotNet;
-using Microsoft.AspNetCore.JsonPatch;
-using Newtonsoft.Json.Linq;
-using Patients.Shared.DTOs;
+﻿using Patients.Shared.DTOs;
 using Patients.Shared.Models;
 using System;
 using System.Collections.Generic;
@@ -106,19 +103,17 @@ namespace MedicalClientBlazor.Services
             }
         }
 
-        public async Task UpdatePatientAsync(Patient newPatient,Patient oldPatient)
+        public async Task<HttpResponseMessage> UpdatePatientAsync(Patient newPatient)
         {
-            var jsonDiff = new JsonDiffPatch();
             try
             {
-                var diffRes = jsonDiff.Diff(JsonSerializer.Serialize(newPatient), 
-                                    JsonSerializer.Serialize(oldPatient));
-
-                //TODO: create patch json
+                var response = await m_client.PutAsJsonAsync<Patient>($"{m_baseUri}patients", newPatient);
+                return response;
             }
             catch(Exception ex)
             {
                 Console.WriteLine(ex.ToString());
+                return null;
             }
         }
     }

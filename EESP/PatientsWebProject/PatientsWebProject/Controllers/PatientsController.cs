@@ -46,8 +46,7 @@ namespace PatientsWebProject.Controllers
         // POST: api/patients
         [HttpPost]
         public async Task<ActionResult> CreatePatientAsync(Patient patient)
-        {
-            Console.WriteLine(patient);
+        { 
             if(patient == null)
             {
                 return BadRequest();
@@ -61,6 +60,20 @@ namespace PatientsWebProject.Controllers
             await _patientRepo.SaveChangesAsync();
 
             return CreatedAtRoute(nameof(GetPatientByIdAsync), new { patient.Id }, patient);
+        }
+
+        // PUT: api/patients
+        [HttpPut]
+        public async Task<ActionResult> UpdatePatient(Patient patient)
+        {
+            if(patient == null)
+            {
+                return BadRequest();
+            }
+
+            _patientRepo.UpdatePatient(patient);
+            await _patientRepo.SaveChangesAsync();
+            return NoContent();
         }
 
 
@@ -98,7 +111,6 @@ namespace PatientsWebProject.Controllers
             return Ok(_mapper.Map<PatientDTO>(patientFound));
         }
 
-        //TODO: Create patch request
-
+        
     }
 }

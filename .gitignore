@@ -2,7 +2,10 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/PatientsWebProject/Patients.Shared/bin/Debug/net5.0
-/PatientsWebProject/Patients.Shared/obj
-/PatientsWebProject/MedicalClientBlazor/bin/Debug/net5.0
-/PatientsWebProject/MedicalClientBlazor/obj
+/EESP/.vs/Visual studio projects/v16/.suo
+/EESP/.vs
+/EESP/PatientsWebProject/.vs/PatientsWebProject/config
+/WebApiTutorial/WebApiTutorial/obj
+/WebApiTutorial/WebApiTutorial/bin/Debug/netcoreapp3.1
+/WebApiTutorial/.vs/WebApiTutorial
+/WebApiTutorial

@@ -158,8 +158,8 @@
 
 
 @code {
-        [Parameter]
-        public int Id { get; set; }
+    [Parameter]
+    public int Id { get; set; }
     private Patient patientModel = new Patient();
     // another object used for patch
     private Patient originalPatient;
@@ -201,7 +201,7 @@
         }
     }
 
-    
+
 
     // method that will generate the age, birthday and sex
     private void CalculateData(string value)
@@ -255,7 +255,13 @@
         }
         else
         {
-            await patientService.UpdatePatientAsync(patientModel, originalPatient);
+            var response = await patientService.UpdatePatientAsync(patientModel);
+            if(response.IsSuccessStatusCode)
+            {
+                alertMsg = "Pacientul a fost actualizat cu succes!";
+                alertColor = Color.Success;
+                myAlert.Show();
+            }
             isBusy = false;
         }
 

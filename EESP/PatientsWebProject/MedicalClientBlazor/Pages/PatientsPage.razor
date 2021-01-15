@@ -31,7 +31,14 @@
                 <Help Padding="Padding.Is2">Dati dublu click pe un rand pentru a putea vedea consultatiile unui pacient.</Help>
             </Column>
             <Column>
-                <TextEdit Placeholder="Cauta dupa nume/prenume..." Padding="Padding.Is2" Margin="Margin.Is2.FromBottom" TextChanged="@OnSearchChanged"/>
+                <Row>
+                    <Column ColumnSize="ColumnSize.Is1">
+                        <Button Clicked="@(() => patients = originalPatients)" title="Reimprospateaza lista de pacienti" Size="Size.Large"><Icon Name="IconName.SyncAlt" /></Button>
+                    </Column>
+                    <Column>
+                        <TextEdit Placeholder="Cauta dupa nume/prenume..." Padding="Padding.Is2" Margin="Margin.Is2.FromBottom" TextChanged="@OnSearchChanged" />
+                    </Column>
+                </Row>
             </Column>
         </Row>
         
@@ -171,4 +178,5 @@
 
         patients = originalPatients;
     }
+
 }

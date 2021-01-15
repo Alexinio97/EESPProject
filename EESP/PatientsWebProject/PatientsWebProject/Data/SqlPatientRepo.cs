@@ -48,5 +48,10 @@ namespace PatientsWebProject.Data
         {
             return (await _dbContext.SaveChangesAsync() >= 0);
         }
+
+        public void UpdatePatient(Patient patient)
+        {
+            _dbContext.Patients.Update(patient);
+        }
     }
 }

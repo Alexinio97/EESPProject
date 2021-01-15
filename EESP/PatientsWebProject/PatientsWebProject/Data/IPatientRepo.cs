@@ -12,5 +12,6 @@ namespace PatientsWebProject.Data
         public Task CreatePatientAsync(Patient patient);
         public Task<bool> SaveChangesAsync();
         public void DeletePatient(Patient patient);
+        public void UpdatePatient(Patient patient);
     }
 }

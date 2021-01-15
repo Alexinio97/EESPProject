@@ -63,17 +63,23 @@
 
     protected async override Task OnInitializedAsync()
     {
-        consultations = await consultService.GetTodayConsultations();
-        if (consultations.Any())
-        {
-            var intermediaryPatients = new List<PatientDTO>();
-            foreach (var consult in consultations)
+        try {
+            consultations = await consultService.GetTodayConsultations();
+            if (consultations.Any())
             {
-                Console.WriteLine(consult.PatientId);
-                var patientFetched = await patientService.GetPatientsShortNamesByIdAsync(consult.PatientId);
-                intermediaryPatients.Add(patientFetched);
+                var intermediaryPatients = new List<PatientDTO>();
+                foreach (var consult in consultations)
+                {
+                    Console.WriteLine(consult.PatientId);
+                    var patientFetched = await patientService.GetPatientsShortNamesByIdAsync(consult.PatientId);
+                    intermediaryPatients.Add(patientFetched);
+                }
+                patients = intermediaryPatients;
             }
-            patients = intermediaryPatients;
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine("Exception caught: " + ex.Message);
         }
     }
 

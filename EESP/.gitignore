@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/PatientsWebProject/Patients.Shared/bin/Debug/net5.0
+/PatientsWebProject/Patients.Shared/obj
+/PatientsWebProject/MedicalClientBlazor/bin/Debug/net5.0
+/PatientsWebProject/MedicalClientBlazor/obj

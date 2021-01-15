@@ -107,7 +107,13 @@ namespace PatientsWebProject.Controllers
             }
 
             await _consultRepo.CreateConsultationAsync(consult);
-            await _consultRepo.SaveChangesAsync();
+            try { 
+                await _consultRepo.SaveChangesAsync();
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("Save changes to database exception: " + ex.ToString());
+            }
 
             return CreatedAtRoute(nameof(GetConsultationByIdAsync), new { consult.Id }, consult);
         }

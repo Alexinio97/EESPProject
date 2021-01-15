@@ -4,6 +4,12 @@
 
 
 <Jumbotron Background="Background.Transparent" Margin="Margin.Is4.FromBottom">
+    <Alert Color="@alertColor" @ref="myAlert">
+        <AlertDescription>
+            @alertMsg
+        </AlertDescription>
+        <CloseButton @onclick="(() => myAlert.Hide())" />
+    </Alert>
     <Row>
         <Column>
             <h5 class="display-4 mb-3">Lista consultatii</h5>
@@ -57,12 +63,12 @@
     }
     @if (consultations != null)
     {
-    <Pagination Alignment="Alignment.Center">
-        <PaginationItem>
-            <PaginationLink Clicked="(() => ChangePage(currentPage - 1))">
-                <Icon Name="IconName.ChevronLeft" />
-            </PaginationLink>
-        </PaginationItem>
+        <Pagination Alignment="Alignment.Center">
+            <PaginationItem>
+                <PaginationLink Clicked="(() => ChangePage(currentPage - 1))">
+                    <Icon Name="IconName.ChevronLeft" />
+                </PaginationLink>
+            </PaginationItem>
             @if (consultPages.Count > 0)
             {
                 @foreach (var consultPage in consultPages)
@@ -73,13 +79,13 @@
                         </PaginationLink>
                     </PaginationItem>
                 }
-        }
-        <PaginationItem>
-            <PaginationLink Clicked="(() => ChangePage(currentPage + 1))">
-                <Icon Name="IconName.ChevronRight" />
-            </PaginationLink>
-        </PaginationItem>
-    </Pagination>
+            }
+            <PaginationItem>
+                <PaginationLink Clicked="(() => ChangePage(currentPage + 1))">
+                    <Icon Name="IconName.ChevronRight" />
+                </PaginationLink>
+            </PaginationItem>
+        </Pagination>
     }
 
 </Jumbotron>
@@ -150,14 +156,33 @@
 
     private IEnumerable<PatientDTO> patients;
 
+    // Alert variables;
+    private Color alertColor = Color.Success;
+    private Alert myAlert;
+    private string alertMsg = string.Empty;
+
     protected async override Task OnInitializedAsync()
     {
-        var consultCount = await consultService.GetConsultationsCount();
-        numberOfPages = (int)Math.Ceiling((decimal)consultCount / 6);
-        CreatePages();
-        consultations = await consultService.GetConsultationsPartsAsync(currentPage);
-        currentPage = consultPages[0].PageNumber;
-        patients = await patientService.GetPatientsShortNamesAsync();
+        try {
+            var consultCount = await consultService.GetConsultationsCount();
+            numberOfPages = (int)Math.Ceiling((decimal)consultCount / 6);
+            CreatePages();
+            consultations = await consultService.GetConsultationsPartsAsync(currentPage);
+            // if there are no consultations set the page to 1
+            if (consultPages.Any())
+            {
+                currentPage = consultPages[0].PageNumber;
+            }
+            else
+            {
+                currentPage = 1;
+            }
+            patients = await patientService.GetPatientsShortNamesAsync();
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine("Exception cuaght in consultations page: " + ex.Message);
+        }
     }
 
     private void CreatePages()
@@ -171,6 +196,10 @@
 
     private async Task CreateConsultAsync()
     {
+        if(consult.PatientId == 0 && patients != null)
+        {
+            consult.PatientId = patients.ToArray()[0].Id;
+        }
         var response = await consultService.CreateConsultationAsync(consult);
         if(response.IsSuccessStatusCode)
         {
@@ -187,13 +216,18 @@
             }
             currentPage = consultPages.Count;
             consultations = await consultService.GetConsultationsPartsAsync(currentPage);
+            alertMsg = "Consultatie adaugata cu succes!";
+            alertColor = Color.Success;
+            myAlert.Show();
             StateHasChanged();
         }
         else
         {
-            Console.WriteLine("Failure!");
             modalOpened = false;
             modalAdd.Hide();
+            alertMsg = "Consultatia nu a putut fi adaugata!";
+            alertColor = Color.Danger;
+            myAlert.Show();
         }
     }
 
@@ -207,6 +241,13 @@
 
     private void DisplayAddModal()
     {
+        if(!patients.Any())
+        {
+            alertColor = Color.Warning;
+            alertMsg = "Nu puteti face o consultatie deoarece nu exista pacienti inregistrati!";
+            myAlert.Show();
+            return;
+        }
         consult.Date = DateTime.Now;
         modalAdd.Show();
         modalOpened = true;
@@ -247,7 +288,7 @@
                 consultations = await consultService.GetConsultationsPartsAsync(page);
                 StateHasChanged();
             }
-            
+
         }
         catch (Exception ex)
         {

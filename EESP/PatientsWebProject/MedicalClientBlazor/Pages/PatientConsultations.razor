@@ -4,7 +4,7 @@
 @using System.Globalization
 @using Blazorise.Snackbar
 
-<Title>Pacient: @(patient == null ? "" : patient.ToString())</Title>
+<Title class="text-center">Pacient: @(patient == null ? "" : patient.ToString())</Title>
 <Blazorise.Snackbar.Snackbar @ref="snackBarInfo" Color="sBarColor" Location="SnackbarLocation.Right">
     <SnackbarBody>
         @snackBarMsg
@@ -58,6 +58,12 @@ else
     {
         patient = await patientService.GetPatientsShortNamesByIdAsync(Id);
         patientConsultations = await consultService.GetPatientConsultationsAsync(Id);
+        if(!patientConsultations.Any())
+        {
+            snackBarMsg = "Pacientul nu are consultatii asociate!";
+            sBarColor = SnackbarColor.Warning;
+            snackBarInfo.Show();
+        }
     }
 
 
