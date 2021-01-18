@@ -31,7 +31,7 @@ namespace MedicalClientBlazor.Services
             }
         }
 
-        public async Task<Consultation> GetConsultationById(int id)
+        public async Task<Consultation> GetConsultationByIdAsync(int id)
         {
             try
             {
@@ -88,7 +88,7 @@ namespace MedicalClientBlazor.Services
             }
         }
 
-        public async Task<int> GetConsultationsCount()
+        public async Task<int> GetConsultationsCountAsync()
         {
             try
             {
@@ -102,7 +102,7 @@ namespace MedicalClientBlazor.Services
             }
         }
 
-        public async Task<IEnumerable<Consultation>> GetTodayConsultations()
+        public async Task<IEnumerable<Consultation>> GetTodayConsultationsAsync()
         {
             try
             {
@@ -112,6 +112,20 @@ namespace MedicalClientBlazor.Services
             catch(Exception ex)
             {
                 Console.WriteLine($"Exception caught: {ex}");
+                return null;
+            }
+        }
+
+        public async Task<HttpResponseMessage> UpdateConsultationAsync(Consultation consult)
+        {
+            try
+            {
+                var respone = await m_client.PutAsJsonAsync<Consultation>($"{m_baseUri}consultations", consult);
+                return respone;
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Exception caught at PUT: {ex}");
                 return null;
             }
         }

@@ -15,5 +15,6 @@ namespace PatientsWebProject.Data
         public void DeleteConsultation(Consultation consult);
         public Task<IEnumerable<Consultation>> GetPatientConsultationsAsync(int patientId);
         public Task<int> GetConsultationsCountAsync();
+        public void UpdateConsultation(Consultation consult);
     }
 }

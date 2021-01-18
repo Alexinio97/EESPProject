@@ -64,7 +64,7 @@
     protected async override Task OnInitializedAsync()
     {
         try {
-            consultations = await consultService.GetTodayConsultations();
+            consultations = await consultService.GetTodayConsultationsAsync();
             if (consultations.Any())
             {
                 var intermediaryPatients = new List<PatientDTO>();

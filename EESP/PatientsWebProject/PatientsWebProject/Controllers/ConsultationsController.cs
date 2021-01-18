@@ -133,6 +133,18 @@ namespace PatientsWebProject.Controllers
             return NoContent();
         }
 
+        //PUT: api/consultations
+        [HttpPut]
+        public async Task<ActionResult> UpdateConsultationAsync(Consultation consult)
+        {
+            if(consult == null)
+            {
+                return BadRequest();
+            }
 
+            _consultRepo.UpdateConsultation(consult);
+            await _consultRepo.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }
